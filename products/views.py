@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from products.form import ProductForm
 from products.recommendation import *
-from .models import Product, Transaction, Cart
+from .models import Order, Product, Transaction, Cart
 import matplotlib.pyplot as plt
 import io
 import base64
@@ -129,41 +129,73 @@ def order_summary(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     return render(request, 'order_summary.html', {'order': order})
 
+from django.shortcuts import render, redirect
+from products.recommendation import train_collaborative_filtering, get_recommendations
+from .models import Product
+import logging
 
+logger = logging.getLogger(__name__)
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Product
+from .recommendation import train_collaborative_filtering, get_recommendations
+import logging
+
+logger = logging.getLogger(__name__)
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Product
+from .recommendation import train_collaborative_filtering, get_recommendations
+import logging
+
+logger = logging.getLogger(__name__)
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Product
+from .recommendation import train_collaborative_filtering
+import logging
+
+logger = logging.getLogger(__name__)
+
+@login_required
 def product_list(request):
     """
-    Displays a list of products along with recommended products based on Collaborative Filtering and Association Rules.
+    Displays a list of products along with recommended products based on Collaborative Filtering.
+    Renders the products first and then loads recommendations later.
     """
-    # Check if the user is authenticated
     if not request.user.is_authenticated:
         return redirect('login')  # Redirect to login page if user is not authenticated
     
-    # Start a database transaction to ensure atomicity
-    with transaction.atomic():
-        try:
-            # Train the collaborative filtering model and get the product IDs
-            model, product_ids = train_collaborative_filtering()
+    # Fetch the product list
+    products = Product.objects.all()
 
-            # Get the current user ID
-            user_id = request.user.id  # Assuming you have a logged-in user
+    # Load recommendations
+    try:
+        # Train collaborative filtering model and get product IDs
+        model, product_ids = train_collaborative_filtering()
 
-            # Get the product list from the database
-            products = Product.objects.all()
+        # Fetch the recommended products
+        recommended_products = Product.objects.filter(id__in=product_ids)
 
-            # Get recommendations for the logged-in user
-            recommended_products = get_recommendations(user_id, model, product_ids)
+        # Combine both products and recommendations to display
+        context = {
+            'products': products,
+            'recommended_products': recommended_products
+        }
 
-            # Render the template and pass the products and recommendations
-            return render(request, 'product_list.html', {
-                'products': products,
-                'recommended_products': recommended_products
-            })
-        except Exception as e:
-            # Handle any errors that occur during the transaction
-            # Optionally log the error or send a message to the user
-            print(f"Error occurred: {e}")
-            return render(request, 'error_page.html', {'message': 'An error occurred while fetching the products and recommendations.'})
+    except Exception as e:
+        # Log any errors that occur while generating recommendations
+        logger.error(f"Error loading recommendations: {e}")
+        context = {
+            'products': products,
+            'recommended_products': []
+        }
 
+    # Render the page with both products and recommendations
+    return render(request, 'product_list.html', context)
 
 @login_required
 def product_detail(request, pk):
