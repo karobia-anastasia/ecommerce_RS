@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from products.form import ProductForm
 from products.recommendation import *
+from products.scrape import scrape_product
 from .models import Order, Product, Transaction, Cart
 import matplotlib.pyplot as plt
 import io
@@ -9,7 +10,6 @@ import base64
 from io import BytesIO
 import numpy as np
 import logging
-from django.db import transaction
 from django.shortcuts import render, redirect
 from .models import Product
 
@@ -82,13 +82,15 @@ def checkout(request):
             price=item.product.price,
             total_amount=item.total_price(),
         )
-        order.transaction.add(transaction)
+        order.transactions.add(transaction)  # Corrected this line to use `transactions.add`
 
     # Clear the cart after the order is created
     cart_items.delete()
 
-    # Redirect to the order summary page with the order ID
+    # Redirect to a page where the user can view their order (you can customize this)
     return redirect('products:order_summary', order_id=order.id)
+
+
 
 @login_required
 def cart_view(request):
@@ -160,34 +162,61 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+import logging
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Product
+
+# Set up logging
+logger = logging.getLogger(__name__)
+import logging
+
+# Set up logging
+logger = logging.getLogger(__name__)
+
 @login_required
 def product_list(request):
     """
     Displays a list of products along with recommended products based on Collaborative Filtering.
-    Renders the products first and then loads recommendations later.
+    Scrapes new products from an external site if not already scraped, and loads recommendations.
     """
     if not request.user.is_authenticated:
         return redirect('login')  # Redirect to login page if user is not authenticated
     
-    # Fetch the product list
-    products = Product.objects.all()
+    # List of external product URLs to scrape from
+    external_product_urls = [
+        'https://pricespy.co.uk/c/ps5-games',  # Example product URLs
+        'https://pricespy.co.uk/fashion-accessories--c1944',
+        'https://pricespy.co.uk/c/watches',
+    ]
+
+    # Scrape and save products from external URLs
+    try:
+        for url in external_product_urls:
+            scrape_product(url)  # Scrape product details and save them to the database
+
+        # After scraping, fetch the updated list of products
+        products = Product.objects.all()
+
+    except Exception as e:
+        logger.error(f"Error scraping products: {e}")
+        products = Product.objects.all()  # Continue with existing products if scraping fails
 
     # Load recommendations
     try:
-        # Train collaborative filtering model and get product IDs
+        # Train the collaborative filtering model and get recommended product IDs
         model, product_ids = train_collaborative_filtering()
 
-        # Fetch the recommended products
+        # Fetch the recommended products from the database
         recommended_products = Product.objects.filter(id__in=product_ids)
 
-        # Combine both products and recommendations to display
+        # Pass both products and recommended products to the template context
         context = {
             'products': products,
             'recommended_products': recommended_products
         }
 
     except Exception as e:
-        # Log any errors that occur while generating recommendations
         logger.error(f"Error loading recommendations: {e}")
         context = {
             'products': products,

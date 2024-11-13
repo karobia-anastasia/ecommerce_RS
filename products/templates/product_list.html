@@ -18,7 +18,7 @@
 
         /* Body and HTML full height */
         body, html {
-            height: 100%; /* Full height */
+            height: 100%;
             font-family: Arial, sans-serif;
             background-color: #f8f9fa;
             color: #333;
@@ -32,8 +32,7 @@
 
         /* Container styling */
         .container {
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
+            width: 100%;
             padding: 20px;
             background-color: #fff;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -96,7 +95,6 @@
             padding: 20px;
             text-align: center;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s;
             position: relative;
         }
 
@@ -223,12 +221,32 @@
             .recommended-card {
                 width: 100%;
             }
+
+            .add-more-products-btn {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
         }
 
         @media (max-width: 480px) {
             .recommended-card {
                 width: 100%;
                 margin-bottom: 20px;
+            }
+
+            .add-more-products-btn {
+                font-size: 0.9em;
+                padding: 10px 20px;
+            }
+
+            .cart-icon {
+                font-size: 1.3em;
+                left: 10px;
+            }
+
+            .cart-icon .cart-count {
+                top: -5px;
+                right: -5px;
             }
         }
 
@@ -279,7 +297,7 @@
                 <div class="product-card">
                     <div class="action-btns">
                         <a href="{% url 'products:product_edit' product.id %}" title="Edit"><i class="fas fa-edit"></i></a>
-                        <a href="{% url 'product_delete' product.id %}" title="Delete"><i class="fas fa-trash-alt"></i></a>
+                        <a href="{% url 'products:product_delete' product.id %}" title="Delete"><i class="fas fa-trash-alt"></i></a>
                     </div>
                     <img src="{{ product.image.url }}" alt="{{ product.name }}">
                     <h3>{{ product.name }}</h3>
@@ -290,8 +308,6 @@
                         {% csrf_token %}
                         <button type="submit" class="btn btn-primary add-to-cart-btn">Add to Cart</button>
                     </form>
-                </div>
-                </div>
                 </div>
             {% empty %}
                 <p>No products available.</p>
