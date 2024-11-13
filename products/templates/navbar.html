@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Navbar</title>
+
+    <!-- Font Awesome CDN for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        /* General reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+
+        /* Navbar Styling */
+        nav {
+            background-color: #333;
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            width: 100%; /* Ensure navbar takes full width */
+            box-sizing: border-box; /* Prevents padding from affecting width */
+        }
+
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%; /* Ensures container spans 100% */
+            max-width: 1200px;
+            margin: 0 auto; /* Centers the navbar in the middle */
+        }
+
+        /* Logo styling */
+        .navbar-logo {
+            font-size: 1.8em;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .navbar-logo i {
+            margin-right: 10px;
+        }
+
+        /* Navbar Links */
+        .navbar-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar-links a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.1em;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .navbar-links a:hover {
+            background-color: #555;
+        }
+
+        /* Hamburger Menu for small screens */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .hamburger div {
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            border-radius: 5px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        /* Mobile Navbar */
+        .mobile-menu {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .mobile-menu a {
+            font-size: 1.2em;
+        }
+
+        /* Media Queries for Responsive Design */
+        @media (max-width: 768px) {
+            .navbar-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .mobile-menu.active {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar Section -->
+    <nav>
+        <div class="navbar-container">
+            <!-- Logo -->
+            <a href="#" class="navbar-logo">
+                <i class="fas fa-store"></i>MyStore
+            </a>
+
+            <!-- Navbar Links -->
+            <div class="navbar-links">
+                <a href="#home">Home</a>
+                <a href="#products">Products</a>
+                <a href="#about">About</a>
+                <a href="#contact">Contact</a>
+            </div>
+
+            <!-- Hamburger Icon -->
+            <div class="hamburger" id="hamburger-icon">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu (hidden by default) -->
+    <div class="mobile-menu" id="mobile-menu">
+        <a href="#home">Home</a>
+        <a href="#products">Products</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+    </div>
+
+    <script>
+        // JavaScript to toggle mobile menu visibility
+        const hamburgerIcon = document.getElementById('hamburger-icon');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        hamburgerIcon.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+        });
+    </script>
+
+</body>
+</html>

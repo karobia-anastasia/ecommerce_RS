@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+
+
+  <h2>Recommended Products for You</h2>
+
+  <div class="recommendations">
+    {% if recommendations %}
+      <ul>
+        {% for product in recommendations %}
+          <li>
+            <h3>{{ product.name }}</h3>
+            <p>Category: {{ product.category.name }}</p>
+            <p>Average Rating: {{ product.average_rating }}</p>
+            <p>Description: {{ product.description }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No recommendations available.</p>
+    {% endif %}
+  </div>
+
+  <div class="visualizations">
+    <h3>Product Category Distribution</h3>
+    <img src="data:image/png;base64,{{ pie_chart_img }}" alt="Category Distribution" />
+
+    <h3>Top Recommended Products</h3>
+    <img src="data:image/png;base64,{{ bar_chart_img }}" alt="Top Recommended Products" />
+  </div>
+
+  <style>
+    .recommendations {
+      margin-bottom: 30px;
+    }
+    
+    .recommendations ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .recommendations li {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    .recommendations li h3 {
+      margin-top: 0;
+      font-size: 1.5rem;
+    }
+
+    .recommendations li p {
+      margin: 5px 0;
+    }
+
+    .visualizations {
+      text-align: center;
+    }
+
+    .visualizations img {
+      max-width: 100%;
+      height: auto;
+      margin-top: 20px;
+    }
+  </style>
+
+
+
+</body>
+</html>
