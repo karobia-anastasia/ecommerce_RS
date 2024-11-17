@@ -258,7 +258,7 @@
     </style>
 </head>
 <body>
-
+    {% load static %}
     <div class="container">
         <!-- Cart Icon with count -->
         <div class="cart-icon">
@@ -277,9 +277,14 @@
                     <img src="{{ rec_product.image.url }}" alt="{{ rec_product.name }}">
                     <h4>{{ rec_product.name }}</h4>
                     <p class="price">${{ rec_product.price }}</p>
-                    <div class="view">
-                        <a href="{% url 'products:product_detail' rec_product.id %}">View Details</a>
-                    </div>
+        
+                    <!-- Ensure that the 'rec_product' exists and has an 'id' -->
+                    {% if rec_product %}
+                        <a href="{% url 'products:product_detail' pk=rec_product.id %}">{{ rec_product.name }}</a>
+                    {% else %}
+                        <p>Product details not available</p>
+                    {% endif %}
+        
                     <form method="POST">
                         {% csrf_token %}
                         <button type="submit" name="add_to_cart" class="add-to-cart-btn">Add to Cart</button>
@@ -289,9 +294,11 @@
                 <p>No recommended products available at the moment.</p>
             {% endfor %}
         </div>
+        
 
-        <!-- Product List -->
-        <h1>Product List</h1>
+
+        <h2> Products List</h2>
+
         <div class="product-list">
             {% for product in products %}
                 <div class="product-card">
@@ -299,11 +306,23 @@
                         <a href="{% url 'products:product_edit' product.id %}" title="Edit"><i class="fas fa-edit"></i></a>
                         <a href="{% url 'products:product_delete' product.id %}" title="Delete"><i class="fas fa-trash-alt"></i></a>
                     </div>
-                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+        
+                    <!-- Check if the product has an image -->
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <!-- Placeholder image if the product has no image -->
+                        <img src="{% static 'images/placeholder.png' %}" alt="No Image Available">
+                    {% endif %}
+        
                     <h3>{{ product.name }}</h3>
                     <p>{{ product.description }}</p>
                     <p class="price">${{ product.price }}</p>
-                    <div class="view"><a href="{% url 'products:product_detail' product.id %}">View Details</a></div>
+        
+                    <div class="view">
+                        <a href="{% url 'products:product_detail' product.id %}">View Details</a>
+                    </div>
+        
                     <form method="POST" action="{% url 'products:add_to_cart' product.id %}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-primary add-to-cart-btn">Add to Cart</button>

@@ -102,7 +102,7 @@
         <h3 class="total">Total: ${{ total }}</h3>
         <a href="{% url 'products:checkout' %}" class="btn btn-checkout">Proceed to Checkout</a>
     {% else %}
-        <p class="empty-cart">Your cart is empty. <a href="/">Browse products</a></p>
+        <p class="empty-cart">Your cart is empty. <a href="{% url 'products:product_list' %}">Browse products</a></p>
     {% endif %}
 </div>
 

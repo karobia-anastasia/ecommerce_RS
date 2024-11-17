@@ -186,50 +186,119 @@ def order_summary(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     return render(request, 'order_summary.html', {'order': order})
 
-# Set up logger for better debugging
+
+
+# Initialize logger
 logger = logging.getLogger(__name__)
 
-@login_required
+def scrape_product(url):
+    logger.info(f"Scraping products from URL: {url}")
+    
+    try:
+        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 ...'})
+        
+        # Log the raw HTML content to check if we're getting the product data
+        if response.status_code == 200:
+            logger.info(response.text[:1000])  # Log first 1000 characters to check the response structure
+            soup = BeautifulSoup(response.content, 'html.parser')
 
+            # Log the prettified version of the HTML to ensure correct structure
+            logger.info(soup.prettify()[:1000])  # Log first 1000 characters of prettified HTML
+            
+            products = soup.find_all('div', {'class': 'search-result-gridview-item-wrapper'})
+            logger.info(f"Found {len(products)} products.")  # Log the number of products found
+            
+            if not products:
+                logger.warning(f"No products found on the page: {url}")
+                return
+            
+            # Continue scraping and saving logic
+            for product in products:
+                name = product.find('span', {'class': 'prod-ProductTitle'}).text.strip() if product.find('span', {'class': 'prod-ProductTitle'}) else None
+                price = product.find('span', {'class': 'price-main'}).text.strip() if product.find('span', {'class': 'price-main'}) else None
+                rating = product.find('span', {'class': 'stars-reviews'}).text.strip() if product.find('span', {'class': 'stars-reviews'}) else None
+                image_url = 'https://www.walmart.com' + product.find('a')['href'] if product.find('a') else None
+
+                if name and price and rating and image_url:
+                    Product.objects.update_or_create(
+                        name=name,
+                        defaults={'price': price, 'rating': rating, 'product_link': image_url}
+                    )
+                    logger.info(f"Saved product: {name}, {price}, {rating}, {image_url}")
+                else:
+                    logger.warning(f"Skipping product due to missing data: {name}, {price}, {rating}, {image_url}")
+        else:
+            logger.error(f"Failed to retrieve the page. Status code: {response.status_code}")
+            
+    except Exception as e:
+        logger.error(f"Error occurred: {e}")
 
 def product_list(request):
     """
-    Displays a list of products along with recommended products based on KNN and fallback to popular products.
+    Displays a list of products along with recommended products based on Collaborative Filtering.
+    Scrapes new products from an external site if not already scraped, and loads recommendations.
     """
     if not request.user.is_authenticated:
-        return redirect('login')  # Redirect to login page if user is not authenticated
+        return redirect('users:login')  # Redirect to login if the user is not authenticated
 
+    # List of external product URLs to scrape from (currently, Walmart is the primary source)
+    external_product_urls = [
+        'https://www.walmart.com/search/?query=laptops',  # Walmart search URL for laptops
+        'https://www.walmart.com/search/?query=smartphones&cat_id=0',  # Walmart search URL for smartphones
+    ]
+
+    # Scrape products from each external URL
     try:
-        # Get the current user ID
-        user_id = request.user.id  # Assuming you have a logged-in user
+        for url in external_product_urls:
+            logger.info(f"Scraping products from URL: {url}")
+            scrape_product(url)  # Call the scraping function to save products into the database
 
-        # Get the product list from the database
+        # After scraping, fetch the updated list of products from the database
         products = Product.objects.all().order_by('-id')  # Show most recently added products first
-
-        # Get combined recommendations (KNN or popular products)
-        recommended_products = get_combined_recommendations(user_id, top_n=5)
-
-        # Render the template and pass the products and recommendations
-        context = {
-            'products': products,
-            'recommended_products': recommended_products
-        }
+        logger.info(f"Fetched updated product list: {products.count()} products found.")
 
     except Exception as e:
-        # Log the exception details for debugging
-        logger.error(f"Error occurred while fetching products or recommendations: {e}", exc_info=True)
+        logger.error(f"Error scraping products: {e}")
+        products = Product.objects.all().order_by('-id')  # Fallback to existing products if scraping fails
 
-        # Provide user-friendly feedback if there’s an error
+    # Load recommendations based on collaborative filtering (if implemented)
+    try:
+        # Train the collaborative filtering model and get recommended product IDs
+        recommendations, product_ids = train_collaborative_filtering(request.user)
+
+        # Fetch the recommended products from the database
+        recommended_products = Product.objects.filter(id__in=product_ids)
+
+        # Pass both products and recommended products to the template context
         context = {
-            'products': Product.objects.all(),
-            'recommended_products': [],
-            'error_message': 'An error occurred while fetching the products and recommendations. Please try again later.'
+            'products': products,
+            'recommended_products': recommended_products,
         }
 
+        logger.info("Loaded recommendations based on collaborative filtering.")
+
+    except Exception as e:
+        logger.error(f"Error loading recommendations: {e}")
+        context = {
+            'products': products,
+            'recommended_products': []  # Fallback if recommendations fail
+        }
+
+    # Render the page with both products and recommendations
     return render(request, 'product_list.html', context)
+
+
 # Product Create (Create new product)
 def product_create(request):
- 
+    """
+    Handle the creation of a new product.
+
+    Parameters:
+        request: The HTTP request.
+
+    Returns:
+        render: The product creation form page.
+    """
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
@@ -322,37 +391,68 @@ def product_delete(request, pk):
 
 
 
-@login_required
-def dashboard(request):
-    """ Renders the dashboard with product recommendations and visualizations """
-    try:
-        # If the user is logged in, use their ID
-        user_id = request.user.id if request.user.is_authenticated else None
+def plot_user_item_matrix(user_item_matrix):
+    """
+    Visualize the user-item matrix using a heatmap.
+    """
+    plt.figure(figsize=(12, 8))
+    sns.heatmap(user_item_matrix, cmap='Blues', cbar=True, annot=False, xticklabels=10, yticklabels=10)
+    plt.title("User-Item Interaction Heatmap")
+    plt.xlabel("Product")
+    plt.ylabel("User ID")
 
-        if user_id is None:
-            # Handle case where the user is not logged in (optional)
-            return render(request, 'dashboard.html', {'error': 'Please log in to see recommendations.'})
+    # Save to BytesIO and encode as base64 string
+    img = BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    plot_url = base64.b64encode(img.getvalue()).decode()
+    plt.close()
+    return plot_url
 
-        # Step 1: Get KNN-based recommendations (or fallback to popular products)
-        recommended_products = get_combined_recommendations(user_id, top_n=5)
-        
-        # Step 2: Create the user-item matrix and generate the heatmap
-        user_item_matrix, user_item_matrix_plot = create_user_item_matrix()
+def plot_similarity_matrix(similarity_matrix, item_ids):
+    """
+    Visualize the similarity matrix using a heatmap.
+    """
+    plt.figure(figsize=(12, 8))
+    sns.heatmap(similarity_matrix, cmap='viridis', annot=False, xticklabels=item_ids[:10], yticklabels=item_ids[:10])
+    plt.title("Item Similarity Matrix (Top 10 Products)")
+    plt.xlabel("Products")
+    plt.ylabel("Products")
 
-        # Step 3: Generate a plot of popular products (if any)
-        popular_products_plot = plot_popular_products(top_n=5)
+    # Save to BytesIO and encode as base64 string
+    img = BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    plot_url = base64.b64encode(img.getvalue()).decode()
+    plt.close()
+    return plot_url
 
-        # Step 4: Pass the recommendations and plot URLs to the template
-        context = {
-            'recommended_products': recommended_products,
-            'user_item_matrix': user_item_matrix,  # Pass the user-item matrix if needed
-            'user_item_matrix_plot': user_item_matrix_plot,
-            'popular_products_plot': popular_products_plot,
-            'user_id': user_id,  # Pass the user_id to the template for user-specific content
-        }
+def visualize_recommendations(request):
+    """
+    View to render the dashboard page with visualizations and recommendations.
+    """
+    # Get the user-item matrix
+    user_item_matrix = get_user_item_matrix()
 
-        return render(request, 'dashboard.html', context)
+    # Build SVD model and get similarity matrix
+    similarity_matrix, item_ids = build_svd_model()
 
-    except Exception as e:
-        logger.error(f"Error rendering dashboard: {e}")
-        return render(request, 'dashboard.html', {'error': 'An error occurred while generating recommendations.'})
+    # Generate association rules
+    rules = generate_association_rules(min_support=0.01, min_threshold=1.0)
+
+    # Get recommendations for a specific user
+    user_id = 1  # For example, user_id=1
+    recommendations = get_recommendations(user_id, user_item_matrix, top_n=5)
+
+    # Plot visualizations
+    user_item_matrix_plot = plot_user_item_matrix(user_item_matrix)
+    similarity_matrix_plot = plot_similarity_matrix(similarity_matrix, item_ids)
+
+    # Pass the context to the template
+    context = {
+        'user_item_matrix_plot': user_item_matrix_plot,
+        'similarity_matrix_plot': similarity_matrix_plot,
+        'recommendations': recommendations,
+    }
+
+    return render(request, 'dashboard.html', context)

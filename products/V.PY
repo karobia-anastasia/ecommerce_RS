@@ -1,14 +1,16 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from products.form import ProductForm
-from products.recommendation import get_recommendations, train_collaborative_filtering
-from .models import Product, Order, Transaction, Cart
+from products.recommendation import *
+from .models import Order, Product, Transaction, Cart
 import matplotlib.pyplot as plt
 import io
 import base64
 from io import BytesIO
 import numpy as np
 import logging
+from django.shortcuts import render, redirect
+from .models import Product
 
 logger = logging.getLogger(__name__)
 
@@ -79,13 +81,15 @@ def checkout(request):
             price=item.product.price,
             total_amount=item.total_price(),
         )
-        order.transaction.add(transaction)
+        order.transactions.add(transaction)  # Corrected this line to use `transactions.add`
 
     # Clear the cart after the order is created
     cart_items.delete()
 
-    # Redirect to the order summary page with the order ID
+    # Redirect to a page where the user can view their order (you can customize this)
     return redirect('products:order_summary', order_id=order.id)
+
+
 
 @login_required
 def cart_view(request):
@@ -126,40 +130,170 @@ def order_summary(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     return render(request, 'order_summary.html', {'order': order})
 
+from django.shortcuts import render, redirect
+from products.recommendation import train_collaborative_filtering, get_recommendations
+from .models import Product
+import logging
+
+logger = logging.getLogger(__name__)
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Product
+from .recommendation import train_collaborative_filtering, get_recommendations
+import logging
+
+logger = logging.getLogger(__name__)
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Product
+from .recommendation import train_collaborative_filtering, get_recommendations
+import logging
+
+logger = logging.getLogger(__name__)
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Product
+from .recommendation import train_collaborative_filtering
+import logging
+
+logger = logging.getLogger(__name__)
+
+import logging
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Product
+
+# Set up logging
+logger = logging.getLogger(__name__)
+import logging
+
+# Set up logging
+logger = logging.getLogger(__name__)
+
+
+
+
+import logging
+import requests
+from bs4 import BeautifulSoup
+from .models import Product
+from requests.exceptions import RequestException
+
+# Set up a logger for this module
+logger = logging.getLogger(__name__)
+
+def scrape_product(url):
+    """
+    Scrapes product details from the given URL and stores them in the database.
+    Logs information and errors along the way.
+    """
+    logger.info(f"Attempting to scrape product from: {url}")  # Log the URL being scraped
+
+    try:
+        # Send a GET request to the product page
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an error for bad responses (4xx/5xx)
+
+        # Parse the page content
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        # Find all product containers on the page (adjust the selector as needed)
+        products_on_page = soup.find_all('div', {'class': 'product-container'})  # Adjust as needed
+        
+        if not products_on_page:
+            logger.warning(f"No products found on page: {url}")
+            return
+
+        # Iterate over each product container and extract details
+        for product_elem in products_on_page:
+            try:
+                # Extract product name, price, description, and image URL with error handling
+                product_name = product_elem.find('h2', {'class': 'product-title'}).get_text(strip=True) if product_elem.find('h2', {'class': 'product-title'}) else 'Unknown'
+                product_price = product_elem.find('span', {'class': 'price'}).get_text(strip=True) if product_elem.find('span', {'class': 'price'}) else 'Not Available'
+                product_description = product_elem.find('p', {'class': 'product-description'}).get_text(strip=True) if product_elem.find('p', {'class': 'product-description'}) else 'No description available'
+                product_image_url = product_elem.find('img')['src'].strip() if product_elem.find('img') else 'No image available'
+
+                # Log extracted details
+                logger.info(f"Extracted - Name: {product_name}, Price: {product_price}, Description: {product_description}, Image URL: {product_image_url}")
+
+                # Save or update the product in the database
+                product, created = Product.objects.update_or_create(
+                    name=product_name,
+                    defaults={
+                        'price': product_price,
+                        'description': product_description,
+                        'image_url': product_image_url,
+                    }
+                )
+
+                # Log the result of the database operation
+                logger.info(f"Product {'created' if created else 'updated'}: {product_name}")
+            
+            except AttributeError as e:
+                logger.error(f"Error extracting product details: {e} - Skipping this product.")
+                continue  # Skip this product if there's any missing data
+
+    except RequestException as e:
+        logger.error(f"Error scraping product from {url}: {e}")
+    except Exception as e:
+        logger.error(f"An error occurred while scraping {url}: {e}")
+
 
 def product_list(request):
     """
-    Displays a list of products along with recommended products based on Collaborative Filtering and Association Rules.
+    Displays a list of products along with recommended products based on Collaborative Filtering.
+    Scrapes new products from an external site if not already scraped, and loads recommendations.
     """
-    # Check if the user is authenticated
     if not request.user.is_authenticated:
         return redirect('login')  # Redirect to login page if user is not authenticated
     
-    # Start a database transaction to ensure atomicity
-    with Transaction.atomic():
-        try:
-            # Train the collaborative filtering model and get the product IDs
-            model, product_ids = train_collaborative_filtering()
+    # List of external product URLs to scrape from
+    external_product_urls = [
+        'https://www.bestbuy.com/top-deals',  # Example product URLs
+        'https://pricespy.co.uk/fashion-accessories--c1944',
+        'https://pricespy.co.uk/c/watches',
+    ]
 
-            # Get the current user ID
-            user_id = request.user.id  # Assuming you have a logged-in user
+    # Scrape and save products from external URLs
+    try:
+        for url in external_product_urls:
+            scrape_product(url)  # Scrape product details and save them to the database
 
-            # Get the product list from the database
-            products = Product.objects.all()
+        # After scraping, fetch the updated list of products
+        products = Product.objects.all()
 
-            # Get recommendations for the logged-in user
-            recommended_products = get_recommendations(user_id, model, product_ids)
+    except Exception as e:
+        logger.error(f"Error scraping products: {e}")
+        products = Product.objects.all()  # Continue with existing products if scraping fails
 
-            # Render the template and pass the products and recommendations
-            return render(request, 'product_list.html', {
-                'products': products,
-                'recommended_products': recommended_products
-            })
-        except Exception as e:
-            # Handle any errors that occur during the transaction
-            # Optionally log the error or send a message to the user
-            print(f"Error occurred: {e}")
-            return render(request, 'error.html', {'message': 'An error occurred while fetching the products and recommendations.'})
+    # Load recommendations
+    try:
+        # Train the collaborative filtering model and get recommended product IDs
+        model, product_ids = train_collaborative_filtering()
+
+        # Fetch the recommended products from the database
+        recommended_products = Product.objects.filter(id__in=product_ids)
+
+        # Pass both products and recommended products to the template context
+        context = {
+            'products': products,
+            'recommended_products': recommended_products
+        }
+
+    except Exception as e:
+        logger.error(f"Error loading recommendations: {e}")
+        context = {
+            'products': products,
+            'recommended_products': []
+        }
+
+    # Render the page with both products and recommendations
+    return render(request, 'product_list.html', context)
+
+
 
 
 @login_required

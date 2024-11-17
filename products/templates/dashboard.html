@@ -3,77 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Dashboard</title>
+
+    <!-- Adding Styles -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #4CAF50;
+            margin-top: 40px;
+        }
+
+        /* Style the product list */
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        ul li {
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Style for images */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+        }
+
+        /* Style for paragraphs */
+        p {
+            color: #777;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+
+        .recommendation-section {
+            margin-bottom: 40px;
+        }
+
+        /* Style for the recommended products */
+        .product-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .product-item {
+            background-color: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            width: 200px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-item h3 {
+            margin: 10px 0;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .product-item p {
+            font-size: 1.2em;
+            color: #444;
+        }
+
+        .product-item img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 <body>
-    
 
+    <h1>Welcome to the Dashboard, User {{ user_id }}</h1>
 
-  <h2>Recommended Products for You</h2>
+    <div class="container">
+        <!-- Display Popular Products -->
+        <div class="recommendation-section">
+          <h2>Top 5 Popular Products</h2>
+          {% if popular_products_plot %}
+              <img src="data:image/png;base64,{{ popular_products_plot }}" alt="Popular Products">
+          {% else %}
+              <p>No popular products plot available.</p>
+          {% endif %}
+      </div>
+  
+ 
+        <!-- Display KNN Recommendations -->
+        <div class="recommendation-section">
+            <h2>Recommended Products (KNN)</h2>
+            {% if recommended_products %}
+                <div class="product-list">
+                    {% for product in recommended_products %}
+                        <div class="product-item">
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                            <h3>{{ product.name }}</h3>
+                            <p>${{ product.price }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No KNN-based recommendations found.</p>
+            {% endif %}
+        </div>
 
-  <div class="recommendations">
-    {% if recommendations %}
-      <ul>
-        {% for product in recommendations %}
-          <li>
-            <h3>{{ product.name }}</h3>
-            <p>Category: {{ product.category.name }}</p>
-            <p>Average Rating: {{ product.average_rating }}</p>
-            <p>Description: {{ product.description }}</p>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>No recommendations available.</p>
-    {% endif %}
-  </div>
+  
 
-  <div class="visualizations">
-    <h3>Product Category Distribution</h3>
-    <img src="data:image/png;base64,{{ pie_chart_img }}" alt="Category Distribution" />
-
-    <h3>Top Recommended Products</h3>
-    <img src="data:image/png;base64,{{ bar_chart_img }}" alt="Top Recommended Products" />
-  </div>
-
-  <style>
-    .recommendations {
-      margin-bottom: 30px;
-    }
-    
-    .recommendations ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    .recommendations li {
-      margin-bottom: 20px;
-      padding: 15px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-    }
-
-    .recommendations li h3 {
-      margin-top: 0;
-      font-size: 1.5rem;
-    }
-
-    .recommendations li p {
-      margin: 5px 0;
-    }
-
-    .visualizations {
-      text-align: center;
-    }
-
-    .visualizations img {
-      max-width: 100%;
-      height: auto;
-      margin-top: 20px;
-    }
-  </style>
-
-
+    </div>
 
 </body>
 </html>
