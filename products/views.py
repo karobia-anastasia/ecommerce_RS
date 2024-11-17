@@ -192,41 +192,7 @@ logger = logging.getLogger(__name__)
 @login_required
 
 
-def product_list(request):
-    """
-    Displays a list of products along with recommended products based on KNN and fallback to popular products.
-    """
-    if not request.user.is_authenticated:
-        return redirect('login')  # Redirect to login page if user is not authenticated
 
-    try:
-        # Get the current user ID
-        user_id = request.user.id  # Assuming you have a logged-in user
-
-        # Get the product list from the database
-        products = Product.objects.all().order_by('-id')  # Show most recently added products first
-
-        # Get combined recommendations (KNN or popular products)
-        recommended_products = get_combined_recommendations(user_id, top_n=5)
-
-        # Render the template and pass the products and recommendations
-        context = {
-            'products': products,
-            'recommended_products': recommended_products
-        }
-
-    except Exception as e:
-        # Log the exception details for debugging
-        logger.error(f"Error occurred while fetching products or recommendations: {e}", exc_info=True)
-
-        # Provide user-friendly feedback if there’s an error
-        context = {
-            'products': Product.objects.all(),
-            'recommended_products': [],
-            'error_message': 'An error occurred while fetching the products and recommendations. Please try again later.'
-        }
-
-    return render(request, 'product_list.html', context)
 # Product Create (Create new product)
 def product_create(request):
  
@@ -319,30 +285,74 @@ def product_delete(request, pk):
         return redirect('products:product_list')
     return render(request, 'delete_product.html', {'product': product})
 
+# Set up logging
 
 
+# Set up logging
+logger = logging.getLogger(__name__)
+
+def product_list(request):
+    """
+    Displays a list of products along with recommended products based on KNN and fallback to popular products.
+    """
+    if not request.user.is_authenticated:
+        return redirect('login')  # Redirect to login page if user is not authenticated
+
+    try:
+        # Get the current user ID
+        user_id = request.user.id  # Assuming you have a logged-in user
+
+        # Get the product list from the database
+        products = Product.objects.all().order_by('-id')  # Show most recently added products first
+
+        # Get combined recommendations (KNN or popular products)
+        recommended_products = get_combined_recommendations(user_id, top_n=5)
+
+        # Render the template and pass the products and recommendations
+        context = {
+            'products': products,
+            'recommended_products': recommended_products
+        }
+
+    except Exception as e:
+        # Log the exception details for debugging
+        logger.error(f"Error occurred while fetching products or recommendations: {e}", exc_info=True)
+
+        # Provide user-friendly feedback if there’s an error
+        context = {
+            'products': Product.objects.all(),
+            'recommended_products': [],
+            'error_message': 'An error occurred while fetching the products and recommendations. Please try again later.'
+        }
+
+    return render(request, 'product_list.html', context)
 
 @login_required
 def dashboard(request):
     """ Renders the dashboard with product recommendations and visualizations """
     try:
-        # If the user is logged in, use their ID
-        user_id = request.user.id if request.user.is_authenticated else None
-
-        if user_id is None:
-            # Handle case where the user is not logged in (optional)
-            return render(request, 'dashboard.html', {'error': 'Please log in to see recommendations.'})
+        # Get the user ID (the user is guaranteed to be logged in due to the @login_required decorator)
+        user_id = request.user.id
 
         # Step 1: Get KNN-based recommendations (or fallback to popular products)
         recommended_products = get_combined_recommendations(user_id, top_n=5)
-        
-        # Step 2: Create the user-item matrix and generate the heatmap
+
+        # Step 2: Create or update the user-item matrix and generate the heatmap
         user_item_matrix, user_item_matrix_plot = create_user_item_matrix()
 
         # Step 3: Generate a plot of popular products (if any)
         popular_products_plot = plot_popular_products(top_n=5)
 
-        # Step 4: Pass the recommendations and plot URLs to the template
+        # Step 4: Check for updates in the user's cart or transactions
+        if 'update_cart' in request.POST:
+            product_id = request.POST.get('product_id')
+            interaction_type = request.POST.get('interaction_type', 'cart')  # Default to 'cart' if not provided
+            # Trigger the real-time update after cart interaction (add/update/remove)
+            updated_recommendations = on_cart_update(user_id, product_id, interaction_type=interaction_type, top_n=5)
+            # Get updated recommendations (fallback to popular products if necessary)
+            recommended_products = get_combined_recommendations(user_id, top_n=5)
+
+        # Step 5: Prepare context for rendering
         context = {
             'recommended_products': recommended_products,
             'user_item_matrix': user_item_matrix,  # Pass the user-item matrix if needed
@@ -356,3 +366,18 @@ def dashboard(request):
     except Exception as e:
         logger.error(f"Error rendering dashboard: {e}")
         return render(request, 'dashboard.html', {'error': 'An error occurred while generating recommendations.'})
+
+# Helper function to update recommendations after cart interaction (if required)
+def on_cart_update(user_id, product_id, interaction_type='cart', top_n=5):
+    """
+    Updates recommendations after the user updates their cart.
+    """
+    try:
+        # Placeholder for real-time cart update logic
+        # After the cart is updated, generate new recommendations based on the updated state
+        logger.info(f"User {user_id} updated their {interaction_type} with product {product_id}.")
+        updated_recommendations = get_combined_recommendations(user_id, top_n=top_n)
+        return updated_recommendations
+    except Exception as e:
+        logger.error(f"Error updating cart recommendations for user {user_id}: {e}")
+        return []  # Return empty list if an error occurs
