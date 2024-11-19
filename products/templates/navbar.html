@@ -3,20 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Responsive Navbar</title>
-
-    <!-- Font Awesome CDN for icons -->
+    <title>Recommendation System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
     <style>
-        /* General reset */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Body Styling */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -24,27 +19,25 @@
             background-color: #f8f9fa;
         }
 
-        /* Navbar Styling */
         nav {
             background-color: #333;
             padding: 10px 20px;
             position: sticky;
             top: 0;
             z-index: 1000;
-            width: 100%; /* Ensure navbar takes full width */
-            box-sizing: border-box; /* Prevents padding from affecting width */
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .navbar-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            width: 100%; /* Ensures container spans 100% */
+            width: 100%;
             max-width: 1200px;
-            margin: 0 auto; /* Centers the navbar in the middle */
+            margin: 0 auto;
         }
 
-        /* Logo styling */
         .navbar-logo {
             font-size: 1.8em;
             color: #fff;
@@ -55,7 +48,6 @@
             margin-right: 10px;
         }
 
-        /* Navbar Links */
         .navbar-links {
             display: flex;
             gap: 20px;
@@ -74,7 +66,6 @@
             background-color: #555;
         }
 
-        /* Hamburger Menu for small screens */
         .hamburger {
             display: none;
             flex-direction: column;
@@ -90,7 +81,6 @@
             transition: transform 0.3s ease-in-out;
         }
 
-        /* Mobile Navbar */
         .mobile-menu {
             display: none;
             flex-direction: column;
@@ -107,7 +97,6 @@
             font-size: 1.2em;
         }
 
-        /* Media Queries for Responsive Design */
         @media (max-width: 768px) {
             .navbar-links {
                 display: none;
@@ -125,20 +114,17 @@
 </head>
 <body>
 
-    <!-- Navbar Section -->
     <nav>
         <div class="navbar-container">
-            <!-- Logo -->
             <a href="#" class="navbar-logo">
                 <i class="fas fa-store"></i>E-Store
             </a>
 
-            <!-- Navbar Links -->
             <div class="navbar-links">
-        <a href="{% url 'products:dashboard' %}">Dashboard</a>
-        <a href="{% url 'products:product_list' %}">Products</a>
-        <a href="{% url 'products:product_create' %}">Add Products</a>
-        <a href="{% url 'users:logout' %}">Logout</a>
+                <a href="{% url 'products:dashboard' %}">Dashboard</a>
+                <a href="{% url 'products:product_list' %}">Products</a>
+                <a href="{% url 'products:product_create' %}">Add Products</a>
+                <a href="{% url 'users:logout' %}">Logout</a>
             </div>
 
             <div class="hamburger" id="hamburger-icon">
@@ -148,6 +134,7 @@
             </div>
         </div>
     </nav>
+
     <div class="mobile-menu" id="mobile-menu">
         <a href="{% url 'products:dashboard' %}">Dashboard</a>
         <a href="{% url 'products:product_list' %}">Products</a>
@@ -158,7 +145,6 @@
     <script>
         const hamburgerIcon = document.getElementById('hamburger-icon');
         const mobileMenu = document.getElementById('mobile-menu');
-
         hamburgerIcon.addEventListener('click', () => {
             mobileMenu.classList.toggle('active');
         });

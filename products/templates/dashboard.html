@@ -16,14 +16,15 @@
 
         h1 {
             text-align: center;
-            color: black;
+            color: #0f0951;;
             padding: 15px 0;
             margin-bottom: 20px;
         }
 
         h2 {
-            color: #4CAF50;
+            color: #0f0951;
             margin-top: 40px;
+            text-align: center;
         }
 
         ul {
@@ -62,9 +63,11 @@
             border-radius: 10px;
             margin-top: 30px;
         }
+
         .recommendation-section {
             margin-bottom: 40px;
         }
+
         .product-list {
             display: flex;
             flex-wrap: wrap;
@@ -97,6 +100,16 @@
             max-width: 100%;
             border-radius: 8px;
         }
+
+        .evaluation-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .evaluation-section img {
+            max-width: 70%;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -104,15 +117,29 @@
     <h1>Welcome to the Dashboard</h1>
 
     <div class="container">
+        
+        <!-- Popular Products Plot Section -->
         <div class="recommendation-section">
-          {% if popular_products_plot %}
-              <img src="data:image/png;base64,{{ popular_products_plot }}" alt="Popular Products">
-          {% else %}
-              <p>No popular products plot available.</p>
-          {% endif %}
-      </div>
-          <div class="recommendation-section">
-            <h2>Recommended Products (KNN)</h2>
+            {% if popular_products_plot %}
+                <img src="data:image/png;base64,{{ popular_products_plot }}" alt="Popular Products">
+            {% else %}
+                <p>No popular products plot available.</p>
+            {% endif %}
+        </div>
+
+                <!-- Model Evaluation Results Section -->
+                <div class="evaluation-section">
+                    <h2>Model Evaluation</h2>
+                    {% if plot_url %}
+                        <img src="data:image/png;base64,{{ plot_url }}" alt="Model Evaluation Plot">
+                    {% else %}
+                        <p>No evaluation plot available.</p>
+                    {% endif %}
+                </div>
+        
+        <!-- Recommended Products (KNN) Section -->
+        <div class="recommendation-section">
+            <h2>Recommended Products</h2>
             {% if recommended_products %}
                 <div class="product-list">
                     {% for product in recommended_products %}
@@ -127,6 +154,8 @@
                 <p>No KNN-based recommendations found.</p>
             {% endif %}
         </div>
+
+
     </div>
 </body>
 </html>

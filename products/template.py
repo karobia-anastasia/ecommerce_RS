@@ -1,32 +1,21 @@
-# Standard Library Imports
-import logging
-import io
-import base64
-
-# Third-Party Imports
 import pandas as pd
 import numpy as np
-import matplotlib
+import logging
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.neighbors import NearestNeighbors
-from sklearn.decomposition import TruncatedSVD  # For dimensionality reduction
 from mlxtend.frequent_patterns import apriori, association_rules
 from surprise import SVD, Dataset, Reader
 from surprise.model_selection import train_test_split
-
-# Django Imports
 from django.db.models import Count
-
-# App-Specific Imports
 from products.models import Cart, Transaction, Product
+import io
+import base64
+import matplotlib
+matplotlib.use('Agg')  # To avoid issues with TkAgg (default matplotlib backend)
 
-# Set matplotlib to use a non-GUI backend (for server-side rendering)
-matplotlib.use('Agg')
-
-# Logger
+# Set up logging
 logger = logging.getLogger(__name__)
-
 def create_user_item_matrix():
     try:
         transactions = Transaction.objects.all().values('user_id', 'product_id')
@@ -36,8 +25,7 @@ def create_user_item_matrix():
             logger.warning("No transaction data found.")
             return pd.DataFrame(), None
         
-        # Assign weights based on transaction type (purchases = 1)
-        transaction_df['interaction'] = 1
+        transaction_df['interaction'] = 1  # Purchases get interaction score of 1
         
         cart_items = Cart.objects.all().values('user_id', 'product_id')
         cart_df = pd.DataFrame(cart_items)
@@ -46,14 +34,11 @@ def create_user_item_matrix():
             logger.warning("No cart data found.")
             return pd.DataFrame(), None
         
-        # Assign weights for cart items (e.g., 0.5, you could tweak this further)
-        cart_df['interaction'] = 0.5
+        cart_df['interaction'] = 0.5  # Cart items get lower interaction score of 0.5
         
-        # Merge cart and transaction data into a single dataframe
         df = pd.concat([transaction_df[['user_id', 'product_id', 'interaction']], 
                         cart_df[['user_id', 'product_id', 'interaction']]], ignore_index=True)
         
-        # Pivot the data to create a user-item interaction matrix
         user_item_matrix = df.pivot_table(index='user_id', columns='product_id', values='interaction', aggfunc='sum', fill_value=0)
 
         if user_item_matrix.empty:
@@ -91,6 +76,9 @@ def plot_user_item_matrix(user_item_matrix):
         logger.error(f"Error occurred while plotting user-item matrix: {e}")
         return None
 
+from sklearn.neighbors import NearestNeighbors
+import pandas as pd
+
 def get_knn_recommendations(user_id, top_n=5):
     try:
         user_item_matrix, _ = create_user_item_matrix()
@@ -110,35 +98,21 @@ def get_knn_recommendations(user_id, top_n=5):
         logger.error(f"Error occurred while generating KNN recommendations for user {user_id}: {e}")
         return []
 
-
 def knn_recommend_products(user_id, user_item_matrix, top_n=5):
     try:
         if user_id not in user_item_matrix.index:
             logger.warning(f"User {user_id} not found in the user-item matrix. Cannot generate KNN recommendations.")
             return []
 
-        # Dynamically set n_components to be the number of features in the user-item matrix
-        n_features = user_item_matrix.shape[1]  # Get the number of features (columns)
-        n_components = min(20, n_features)  # Ensure n_components is not greater than the number of features
+        user_vector = user_item_matrix.loc[user_id].values.reshape(1, -1)
 
-        # Perform dimensionality reduction using TruncatedSVD (for sparse matrix)
-        svd = TruncatedSVD(n_components=n_components, random_state=42)
-        reduced_matrix = svd.fit_transform(user_item_matrix)
-
-        # Now, use the reduced matrix for KNN
-        user_vector = reduced_matrix[user_item_matrix.index.get_loc(user_id)].reshape(1, -1)
-
-        # Check the number of available samples (users) in the dataset
-        n_samples = reduced_matrix.shape[0]
-        actual_neighbors = min(top_n + 1, n_samples)  # Don't ask for more neighbors than available
-
-        # Perform KNN to find similar users (neighbors)
-        knn = NearestNeighbors(n_neighbors=actual_neighbors, metric='cosine')
-        knn.fit(reduced_matrix)
+        knn = NearestNeighbors(n_neighbors=top_n + 1, metric='cosine')
+        
+        # Fit KNN on the transposed user-item matrix
+        knn.fit(user_item_matrix.values.T)  # Each product should be a row, each user a column
 
         distances, indices = knn.kneighbors(user_vector)
 
-        # Get the recommended product IDs from the nearest neighbors (excluding the user themselves)
         recommended_product_ids = user_item_matrix.columns[indices.flatten()[1:]].tolist()
 
         logger.info(f"KNN recommendations for user {user_id}: {recommended_product_ids}")
@@ -146,35 +120,40 @@ def knn_recommend_products(user_id, user_item_matrix, top_n=5):
         return recommended_product_ids
 
     except Exception as e:
-        logger.error(f"Error occurred while generating KNN recommendations for user {user_id}: {e}")
+        logger.error(f"Error occurred while generating KNN recommendations: {e}")
         return []
+
 
 def get_combined_recommendations(user_id, top_n=5):
     try:
-        # Try KNN-based recommendations first
+        # Get KNN-based recommendations
         knn_recommendations = get_knn_recommendations(user_id, top_n)
-        
+
         if not knn_recommendations:
-            logger.warning(f"No KNN-based recommendations for user {user_id}. Trying association rules.")
+            logger.warning(f"No KNN-based recommendations found for user {user_id}. Falling back to association rules.")
             
-            # Use association rules if KNN is unavailable
+            # If KNN fails, use Association Rules to generate recommendations
             association_recommendations = get_association_rule_recommendations(user_id, top_n)
-            
+
             if not association_recommendations:
-                logger.warning(f"No association rule recommendations for user {user_id}. Falling back to popular products.")
+                logger.warning(f"No recommendations found using association rules for user {user_id}. Falling back to popular products.")
                 
-                # Fall back to popular products if association rules don't work
+                # If association rules fail, fall back to popular products
                 popular_recommendations = get_popular_products(top_n)
+                plot_popular_products(top_n)  # Visualize popular products
                 recommended_products = Product.objects.filter(id__in=popular_recommendations)
-                
                 return recommended_products
-        
+
+            # If association rule recommendations are found, use them
+            return association_recommendations
+
+        # If KNN recommendations are found, use them
         recommended_products = Product.objects.filter(id__in=knn_recommendations)
         return recommended_products
 
     except Exception as e:
         logger.error(f"Error occurred while fetching combined recommendations for user {user_id}: {e}")
-        return [] 
+        return []  # Return an empty list if any error occurs
 
 def get_popular_products(top_n=5):
     try:
@@ -183,7 +162,7 @@ def get_popular_products(top_n=5):
 
     except Exception as e:
         logger.error(f"Error occurred while fetching popular products: {e}")
-        return [] 
+        return []  # Return an empty list if any error occurs
 
 def plot_popular_products(top_n=5):
     try:
@@ -211,32 +190,49 @@ def plot_popular_products(top_n=5):
         logger.error(f"Error occurred while plotting popular products: {e}")
         return None
 
+
 def get_association_rule_recommendations(user_id, top_n=5):
+
     try:
-        # Ensure you're querying the correct field for user_id
-        transactions = Transaction.objects.filter(user__id=user_id).values('user_id', 'product_id')
+        #  Fetch transaction data (user_id, product_id)
+        transactions = Transaction.objects.filter(user_id=user_id).values('product_id')
+        transaction_df = pd.DataFrame(transactions)
 
-        # Log the fetched transactions to verify what data is being retrieved
-        logger.debug(f"Transactions fetched for user {user_id}: {transactions}")
-
-        if not transactions:
+        if transaction_df.empty:
             logger.warning(f"No transaction data found for user {user_id}.")
             return []
 
-        transaction_df = pd.DataFrame(transactions)
+        #  Create a binary user-item matrix
+        # Create a binary matrix where 1 indicates a product was purchased, 0 otherwise
+        user_item_matrix = transaction_df.groupby(['user_id', 'product_id']).size().unstack(fill_value=0)
+        
+        # Convert to binary format (0 or 1) to comply with the Apriori algorithm
+        user_item_matrix[user_item_matrix > 0] = 1  # Set all values greater than 0 to 1 (purchase occurred)
 
-        # Log the DataFrame for debugging
-        logger.debug(f"Transaction DataFrame for user {user_id}:\n{transaction_df.head()}")
+        # Ensure binary values (0 or 1)
+        user_item_matrix = user_item_matrix.astype(int)
 
-        # Check if 'user_id' is in the DataFrame columns
-        if 'user_id' not in transaction_df.columns:
-            logger.error(f"Column 'user_id' not found in the transaction data for user {user_id}.")
+        # Apply the Apriori algorithm to get frequent itemsets
+        frequent_itemsets = apriori(user_item_matrix, min_support=0.1, use_colnames=True)
+        
+        # Generate association rules from the frequent itemsets
+        rules = association_rules(frequent_itemsets, metric="lift", min_threshold=1)
+
+        if rules.empty:
+            logger.warning(f"No association rules found for user {user_id}.")
             return []
 
-        # Continue with your logic...
+        # Sort the rules by confidence (or lift) and recommend top N products
+        rules = rules.sort_values(by='confidence', ascending=False)
+        recommended_product_ids = rules['consequents'].head(top_n).apply(lambda x: list(x)[0]).tolist()
+
+        logger.info(f"Association rule recommendations for user {user_id}: {recommended_product_ids}")
+
+        return recommended_product_ids
+
     except Exception as e:
         logger.error(f"Error occurred while generating association rule recommendations for user {user_id}: {e}")
-        return []
+        return []  # Return an empty list if any error occurs
 
 
 def evaluate_knn_recommendations(user_id, top_n=5):

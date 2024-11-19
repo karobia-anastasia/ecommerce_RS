@@ -8,304 +8,220 @@
     <title>Product List</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        body, html {
-            height: 100%;
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            color: #333;
-            line-height: 1.6;
-        }
+body, html {
+    height: 100%;
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    line-height: 1.6;
+}
 
-        h1, h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-        }
-
-        .container {
-            width: 100%;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-
-        .add-more-products-btn {
-            display: inline-block;
-            padding: 15px 30px;
-            font-size: 1.2em;
-            background-color: #b97f13;
-            color: white;
-            border-radius: 5px;
-            text-decoration: none;
-            text-align: center;
-            transition: background-color 0.3s;
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
-
-        .add-more-products-btn:hover {
-            background-color:  #654f26;
-        }
-
-        .cart-icon {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            font-size: 1.5em;
-            color: #12121b;
-            cursor: pointer;
-        }
-
-        .cart-icon .cart-count {
-            font-size: 1em;
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background-color: rgb(248, 167, 29);
-            color: rgb(23, 22, 22);
-            border-radius: 50%;
-            padding:8px;
-        }
-
-        .product-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .product-card {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-
-        .product-card img {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .product-card h3 {
-            font-size: 1.2em;
-            margin-bottom: 10px;
-        }
-
-        .product-card p {
-            font-size: 1em;
-            color: #555;
-            margin-bottom: 15px;
-        }
-
-        .product-card .price {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #e74c3c;
-            margin-bottom: 20px;
-        }
-
-        .add-to-cart-btn {
-            padding: 10px 20px;
-            font-size: 1em;
-            background-color: #a06a12;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .add-to-cart-btn:hover {
-            background-color: #8b6719;
-        }
-
-        .product-card .action-btns {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .product-card .action-btns a {
-            font-size: 1.2em;
-            color: #333;
-            text-decoration: none;
-            padding: 5px;
-            transition: color 0.3s;
-        }
-
-        .product-card .action-btns a:hover {
-            color: #e74c3c;
-        }
-
-        .recommended-products {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: space-between;
-            margin-top: 40px;
-        }
-
-        .recommended-card {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            width: 230px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: transform 0.3s;
-        }
-
-        .recommended-card img {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .recommended-card h4 {
-            font-size: 1.1em;
-            margin-bottom: 10px;
-        }
-
-        .recommended-card .price {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #e74c3c;
-            margin-bottom: 15px;
-        }
-
-        .recommended-card:hover {
-            transform: translateY(-10px);
-        }
-
-        @media (max-width: 1200px) {
-            .product-list {
-                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            }
-
-            .recommended-products {
-                justify-content: flex-start;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .product-list {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            }
-
-            .recommended-card {
-                width: 100%;
-            }
-
-            .add-more-products-btn {
-                padding: 12px 25px;
-                font-size: 1em;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .recommended-card {
-                width: 100%;
-                margin-bottom: 20px;
-            }
-
-            .add-more-products-btn {
-                font-size: 0.9em;
-                padding: 10px 20px;
-            }
-
-            .cart-icon {
-                font-size: 1.3em;
-                left: 10px;
-            }
-
-            .cart-icon .cart-count {
-                top: -5px;
-                right: -5px;
-            }
-        }
-
-        .view a {
-            text-decoration: none;
-            background: none;
-            color: black;
-        }
-        .view-cart-btn{
-            font-size: 10px;
-        }
-        .cart-icon {
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     position: relative;
+}
+
+.header-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.search-bar {
+    display: flex;
+    gap: 10px;
+    flex-grow: 1;
+    max-width: 600px;
+}
+
+.search-bar input {
+    width: 70%;
+    padding: 10px;
+    font-size: 1em;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.search-bar button {
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #b97f13;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.search-bar button:hover {
+    background-color: #654f26;
+}
+
+.filter-dropdown, .create-product-btn {
     display: inline-block;
-    margin-right: 20px; 
+    padding: 10px;
+    font-size: 1em;
+    background-color: #b97f13;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
 
-.cart-icon i {
-    font-size: 2rem; 
-    color: #333; 
-    margin-right: 10px;
+.filter-dropdown:hover, .create-product-btn:hover {
+    background-color: #654f26;
 }
 
-.cart-count {
+.cart-icon {
+    font-size: 1.2em;
+    color: #c7c7ea;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.cart-icon .cart-count {
+    font-size: 1.2em;
     position: absolute;
-    top: 0;
-    right: 0;
-    background-color: red; 
-    color: white; 
-    border-radius: 50%; 
-    padding: 5px 10px;
-    font-size: 1rem; 
-    font-weight: bold;
-    min-width: 24px; 
-    text-align: center;
+    top: -10px;
+    right: -10px;
+    background-color: rgb(248, 167, 29);
+    color: rgb(23, 22, 22);
+    border-radius: 50%;
+    padding: 8px;
 }
 
 .view-cart-btn {
-    display: inline-block;
-    padding: 8px 8px;
-    background-color: #333a41;
-    color: white;
-    border-radius: 4px;
+    color: #12121b;
     text-decoration: none;
-    font-size: 1rem;
-    margin-top: 10px; 
-    transition: background-color 0.3s ease;
+    margin-left: 10px;
+    font-size: 1em;
 }
 
 .view-cart-btn:hover {
-    background-color: #191b1d;
+    color: #e74c3c;
+}
+
+.product-grid {
+  
+
+
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 30px;
+   
+}
+
+.product-card, .recommended-card {
+    background-color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                overflow: hidden;
+                margin: 10px;
+                width: 200px;
+                text-align: center;
+                cursor: pointer;
+   
+}
+
+.product-card img, .recommended-card img {
+    width: 100%;
+    height: 50%;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    object-fit: cover;
+}
+
+.product-card h3, .recommended-card h4 {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    text-transform: capitalize;
+}
+
+.price {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #e74c3c;
+    margin-bottom: 15px;
+}
+
+.add-to-cart-btn {
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #a06a12;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: auto;
+}
+
+.add-to-cart-btn:hover {
+    background-color: #8b6719;
+}
+
+.center-content {
+    text-align: center;
+    padding-bottom: 20px;
 }
 
 @media (max-width: 768px) {
-    .cart-icon {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px; 
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 
-    .cart-count {
-        font-size: 0.9rem; 
+    .product-card, .recommended-card {
+        width: 90%;
     }
+}
 
-    .view-cart-btn {
-        font-size: 0.9rem;
-        padding: 6px 12px;
+@media (max-width: 480px) {
+    .product-grid {
+        grid-template-columns: 1fr;
     }
+}
+
+.pagination {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.step-links a {
+    color: #b97f13;
+    text-decoration: none;
+    padding: 5px 10px;
+    margin: 0 5px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.step-links a:hover {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.current {
+    font-size: 1.2em;
+    color: #2c3e50;
 }
 
     </style>
@@ -313,92 +229,78 @@
 <body>
     {% load static %}
     <div class="container">
-<div class="cart-icon">
-    <div class="cart-icon">
-        <i class="fas fa-shopping-cart">{{ cart_item_count|default:0 }}</i> 
-        <a href="{% url 'products:cart_view' %}" class="view-cart-btn">View Cart</a> 
-    </div>
-    
+        <div class="header-actions">
+            <div class="search-bar">
+                <input type="text" name="search" placeholder="Search for products..." value="{{ search_query }}">
+                <button type="submit"><i class="fas fa-search"></i></button>
+            </div>
 
+            <div class="cart-icon">
+                <i class="fas fa-shopping-cart">{{ cart_item_count }}</i>
+                <a href="{% url 'products:cart_view' %}" class="view-cart-btn">View Cart</a>
+            </div>
+
+            <form method="GET" action="{% url 'products:product_list' %}">
+                <select name="category" class="filter-dropdown" onchange="this.form.submit()">
+                    <option value="">Filter by category</option>
+                    {% for value, label in categories %}
+                    <option value="{{ value }}" {% if value == category_filter %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            {% if user.is_staff %}
+            <a href="{% url 'products:product_create' %}" class="create-product-btn">Create Product</a>
+            {% endif %}
         </div>
-        <a href="{% url 'products:product_create' %}" class="add-more-products-btn">Create Products</a>
-     <center>   <h2>Recommended Products</h2></center>
-        <div class="recommended-products">
+
+        <center><h2>Recommended Products</h2></center>
+        <div class="product-grid">
             {% for rec_product in recommended_products %}
-                <div class="recommended-card">
-                    <img src="{{ rec_product.image.url }}" alt="{{ rec_product.name }}">
-                    <h4>{{ rec_product.name }}</h4>
-                    <p class="price">${{ rec_product.price }}</p>
-        
-                    <!-- Ensure that the 'rec_product' exists and has an 'id' -->
-                    {% if rec_product %}
-                        <a href="{% url 'products:product_detail' pk=rec_product.id %}">View Product</a>
-                    {% else %}
-                        <p>Product details not available</p>
-                    {% endif %}
-        
-                    <form method="POST" action="{% url 'products:add_to_cart' rec_product.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-primary add-to-cart-btn">Add to Cart</button>
-                    </form>
-                </div>
+            <div class="recommended-card">
+                <img src="{{ rec_product.image.url }}" alt="{{ rec_product.name }}">
+                <h4>{{ rec_product.name }}</h4>
+                <p class="price">${{ rec_product.price }}</p>
+                <a href="{% url 'products:product_detail' pk=rec_product.id %}">View Product</a>
+                <form method="POST" action="{% url 'products:add_to_cart' rec_product.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="add-to-cart-btn">Add to Cart</button>
+                </form>
+            </div>
             {% empty %}
-                <p>No recommended products available at the moment.</p>
+            <p>No recommended products available at the moment.</p>
             {% endfor %}
         </div>
-        
 
-
-        <h2> Products List</h2>
-
-        <div class="product-list">
+        <center><h2>Products List</h2></center>
+        <div class="product-grid">
             {% for product in products %}
-                <div class="product-card">
-                    <div class="action-btns">
-                        <a href="{% url 'products:product_edit' product.id %}" title="Edit"><i class="fas fa-edit"></i></a>
-                        <a href="{% url 'products:product_delete' product.id %}" title="Delete"><i class="fas fa-trash-alt"></i></a>
-                    </div>
-        
-                    <!-- Check if the product has an image -->
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
-                    {% else %}
-                        <!-- Placeholder image if the product has no image -->
-                        <img src="{% static 'images/placeholder.png' %}" alt="No Image Available">
-                    {% endif %}
-        
-                    <h3>{{ product.name }}</h3>
-                    <p>{{ product.description }}</p>
-                    <p class="price">${{ product.price }}</p>
-        
-                    <div class="view">
-                        <a href="{% url 'products:product_detail' product.id %}">View Details</a>
-                    </div>
-        
-                    <form method="POST" action="{% url 'products:add_to_cart' product.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-primary add-to-cart-btn">Add to Cart</button>
-                    </form>
-                </div>
-            {% empty %}
-                <p>No products available.</p>
+            <div class="product-card">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                <h3>{{ product.name }}</h3>
+                <p>{{ product.description }}</p>
+                <div class="price">${{ product.price }}</div>
+                <button class="add-to-cart-btn">Add to Cart</button>
+            </div>
             {% endfor %}
         </div>
 
+        <!-- Pagination Controls -->
+        <div class="pagination">
+            <div class="step-links">
+                {% if products.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ products.previous_page_number }}">previous</a>
+                {% endif %}
+                <span class="current">
+                    Page {{ products.number }} of {{ products.paginator.num_pages }}.
+                </span>
+                {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}">next</a>
+                <a href="?page={{ products.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </div>
+        </div>
     </div>
-    <script>
-        // Function to update the cart count
-        function updateCartCount() {
-            fetch("{% url 'products:get_cart_count' %}")
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("cart-count").innerText = data.cart_item_count;
-                });
-        }
-    
-    
-        updateCartCount();
-    </script>
-
 </body>
 </html>
