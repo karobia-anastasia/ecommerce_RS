@@ -135,13 +135,12 @@
 
             <!-- Navbar Links -->
             <div class="navbar-links">
-                <a href="#home">Dashboard</a>
-                <a href="{% url 'products:product_list'%}">Products</a>
-                <a href="#about">Add Products</a>
-                <a href="#contact">Logout</a>
+        <a href="{% url 'products:dashboard' %}">Dashboard</a>
+        <a href="{% url 'products:product_list' %}">Products</a>
+        <a href="{% url 'products:product_create' %}">Add Products</a>
+        <a href="{% url 'users:logout' %}">Logout</a>
             </div>
 
-            <!-- Hamburger Icon -->
             <div class="hamburger" id="hamburger-icon">
                 <div></div>
                 <div></div>
@@ -149,17 +148,14 @@
             </div>
         </div>
     </nav>
-
-    <!-- Mobile Menu (hidden by default) -->
     <div class="mobile-menu" id="mobile-menu">
-        <a href="#home">Dashboard</a>
-        <a href="{% url 'products:product_list'%}">Products</a>
-        <a href="#about">Add Products</a>
-        <a href="#contact">Logout</a>
+        <a href="{% url 'products:dashboard' %}">Dashboard</a>
+        <a href="{% url 'products:product_list' %}">Products</a>
+        <a href="{% url 'products:product_create' %}">Add Products</a>
+        <a href="{% url 'users:logout' %}">Logout</a>
     </div>
 
     <script>
-        // JavaScript to toggle mobile menu visibility
         const hamburgerIcon = document.getElementById('hamburger-icon');
         const mobileMenu = document.getElementById('mobile-menu');
 

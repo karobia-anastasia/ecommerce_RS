@@ -6,17 +6,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product List</title>
-    <!-- Font Awesome CDN for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* General reset */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Body and HTML full height */
         body, html {
             height: 100%;
             font-family: Arial, sans-serif;
@@ -30,7 +27,6 @@
             margin-bottom: 20px;
         }
 
-        /* Container styling */
         .container {
             width: 100%;
             padding: 20px;
@@ -39,7 +35,6 @@
             position: relative;
         }
 
-        /* Add More Products Button */
         .add-more-products-btn {
             display: inline-block;
             padding: 15px 30px;
@@ -59,7 +54,6 @@
             background-color:  #654f26;
         }
 
-        /* Cart Icon (top-left) */
         .cart-icon {
             position: absolute;
             top: 20px;
@@ -75,12 +69,11 @@
             top: -10px;
             right: -10px;
             background-color: rgb(248, 167, 29);
-            color: white;
+            color: rgb(23, 22, 22);
             border-radius: 50%;
-            padding: 2px;
+            padding:8px;
         }
 
-        /* Product List Styles */
         .product-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -138,7 +131,6 @@
             background-color: #8b6719;
         }
 
-        /* Action Buttons (Edit & Delete) */
         .product-card .action-btns {
             position: absolute;
             top: 10px;
@@ -159,7 +151,6 @@
             color: #e74c3c;
         }
 
-        /* Recommended Products Row */
         .recommended-products {
             display: flex;
             flex-wrap: wrap;
@@ -202,7 +193,6 @@
             transform: translateY(-10px);
         }
 
-        /* Media Queries for Responsiveness */
         @media (max-width: 1200px) {
             .product-list {
                 grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -255,22 +245,84 @@
             background: none;
             color: black;
         }
+        .view-cart-btn{
+            font-size: 10px;
+        }
+        .cart-icon {
+    position: relative;
+    display: inline-block;
+    margin-right: 20px; 
+}
+
+.cart-icon i {
+    font-size: 2rem; 
+    color: #333; 
+    margin-right: 10px;
+}
+
+.cart-count {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: red; 
+    color: white; 
+    border-radius: 50%; 
+    padding: 5px 10px;
+    font-size: 1rem; 
+    font-weight: bold;
+    min-width: 24px; 
+    text-align: center;
+}
+
+.view-cart-btn {
+    display: inline-block;
+    padding: 8px 8px;
+    background-color: #333a41;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 1rem;
+    margin-top: 10px; 
+    transition: background-color 0.3s ease;
+}
+
+.view-cart-btn:hover {
+    background-color: #191b1d;
+}
+
+@media (max-width: 768px) {
+    .cart-icon {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px; 
+    }
+
+    .cart-count {
+        font-size: 0.9rem; 
+    }
+
+    .view-cart-btn {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+    }
+}
+
     </style>
 </head>
 <body>
     {% load static %}
     <div class="container">
-        <!-- Cart Icon with count -->
-        <div class="cart-icon">
-            <i class="fas fa-shopping-cart"></i>
-            <div class="cart-count">0</div> <!-- Cart count should dynamically update -->
+<div class="cart-icon">
+    <div class="cart-icon">
+        <i class="fas fa-shopping-cart">{{ cart_item_count|default:0 }}</i> 
+        <a href="{% url 'products:cart_view' %}" class="view-cart-btn">View Cart</a> 
+    </div>
+    
+
         </div>
-
-        <!-- Add More Products Button -->
-        <a href="{% url 'products:product_create' %}" class="add-more-products-btn">Add More Products</a>
-
-        <!-- Recommended Products -->
-        <h2>Recommended Products</h2>
+        <a href="{% url 'products:product_create' %}" class="add-more-products-btn">Create Products</a>
+     <center>   <h2>Recommended Products</h2></center>
         <div class="recommended-products">
             {% for rec_product in recommended_products %}
                 <div class="recommended-card">
@@ -285,9 +337,9 @@
                         <p>Product details not available</p>
                     {% endif %}
         
-                    <form method="POST">
+                    <form method="POST" action="{% url 'products:add_to_cart' rec_product.id %}">
                         {% csrf_token %}
-                        <button type="submit" name="add_to_cart" class="add-to-cart-btn">Add to Cart</button>
+                        <button type="submit" class="btn btn-primary add-to-cart-btn">Add to Cart</button>
                     </form>
                 </div>
             {% empty %}
@@ -334,6 +386,19 @@
         </div>
 
     </div>
+    <script>
+        // Function to update the cart count
+        function updateCartCount() {
+            fetch("{% url 'products:get_cart_count' %}")
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("cart-count").innerText = data.cart_item_count;
+                });
+        }
+    
+    
+        updateCartCount();
+    </script>
 
 </body>
 </html>

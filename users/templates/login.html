@@ -9,8 +9,8 @@
 
             body {
                 font-family: Arial, sans-serif;
-                background-color: white;
-                color: rgb(9, 3, 3);
+                background-color: rgb(121, 110, 69);
+                color: #b97f13;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -18,7 +18,7 @@
             }
 
             .login-container {
-                background-color: #6C4E8B;
+                background-color: white;
                 padding: 30px;
                 border-radius: 8px;
                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -47,7 +47,7 @@
             }
 
             input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
-                border-color: #6c4e8b;
+                border-color: #b97f13;
             }
 
             .btn-login {
@@ -62,7 +62,7 @@
             }
 
             .btn-login:hover {
-                background-color: #80629f;
+                background-color: #b97f13;
                 color: rgb(25, 23, 23);
             }
 
@@ -80,7 +80,7 @@
             }
 
             a {
-                color: #6c4e8b;
+                color: #1c108a;
                 text-decoration: none;
             }
 
@@ -92,6 +92,9 @@
                 cursor: pointer;
                 border: none;
                 background: none;
+            }
+            .footer{
+                margin-top: 10px;
             }
         </style>
     </head>
@@ -145,7 +148,7 @@
             <button type="submit" class="btn-login">Login</button>
         </form>
 
-        <div class="text-center mt-3">
+        <div class="text-center footer">
             <p>Don't have an account? <a href="{% url 'users:register' %}">Register here</a></p>
         </div>
     </div>

@@ -12,18 +12,14 @@ from products.models import Cart, Transaction, Product
 import io
 import base64
 import matplotlib
-matplotlib.use('Agg')  # Use non-GUI backend for matplotlib
+matplotlib.use('Agg') 
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
 def create_user_item_matrix():
-    """
-    Creates a user-item matrix using both cart and transaction data.
-    The matrix values will be 1 if the user has interacted with the product (either in cart or transaction).
-    """
     try:
-        # Step 1: Get all transaction data
+        #  Get all transaction data
         transactions = Transaction.objects.all().values('user_id', 'product_id')
         transaction_df = pd.DataFrame(transactions)
 
@@ -38,7 +34,7 @@ def create_user_item_matrix():
 
         transaction_df['interaction'] = 1  # Purchases get an interaction score of 1
 
-        # Step 2: Get all cart data
+        #  Get all cart data
         cart_items = Cart.objects.all().values('user_id', 'product_id')
         cart_df = pd.DataFrame(cart_items)
 
@@ -53,7 +49,7 @@ def create_user_item_matrix():
 
         cart_df['interaction'] = 0.5  # Cart items get a lower interaction score (0.5)
 
-        # Step 3: Combine transaction and cart data
+        # Combine transaction and cart data
         if transaction_df.empty and cart_df.empty:
             logger.warning("Both transaction and cart data are empty. Cannot create user-item matrix.")
             return pd.DataFrame(), None  # Return empty if no data is available
@@ -63,7 +59,7 @@ def create_user_item_matrix():
 
         logger.info(f"Combined data (transactions + cart): {len(df)} records found.")
 
-        # Step 4: Create user-item matrix
+        # Create user-item matrix
         user_item_matrix = df.pivot_table(index='user_id', columns='product_id', values='interaction', aggfunc='sum', fill_value=0)
 
         logger.info(f"User-item matrix created with shape: {user_item_matrix.shape}")
@@ -82,7 +78,6 @@ def create_user_item_matrix():
         return pd.DataFrame(), None  # Return empty DataFrame and None if error occurs
 
 def plot_user_item_matrix(user_item_matrix):
-    """Visualizes the user-item matrix as a heatmap and returns a base64-encoded image URL."""
     try:
         if user_item_matrix.empty:
             logger.warning("User-item matrix is empty. Cannot generate heatmap.")
@@ -108,7 +103,6 @@ def plot_user_item_matrix(user_item_matrix):
         return None
 
 def get_knn_recommendations(user_id, top_n=5):
-    """Generates KNN-based recommendations for a given user."""
     try:
         user_item_matrix, _ = create_user_item_matrix()
         
@@ -130,7 +124,6 @@ def get_knn_recommendations(user_id, top_n=5):
         return []  # Return an empty list if any error occurs
 
 def knn_recommend_products(user_id, user_item_matrix, top_n=5):
-    """Generate KNN-based product recommendations for a given user."""
     try:
         if user_id not in user_item_matrix.index:
             logger.warning(f"User {user_id} not found in user-item matrix. Cannot generate KNN recommendations.")
@@ -155,23 +148,20 @@ def knn_recommend_products(user_id, user_item_matrix, top_n=5):
         return []  # Return an empty list if any error occurs
 
 def get_combined_recommendations(user_id, top_n=5):
-    """
-    Combines recommendations from KNN and fallback to popular products if necessary.
-    """
     try:
-        # Step 1: Get KNN-based recommendations
+        # Get KNN-based recommendations
         knn_recommendations = get_knn_recommendations(user_id, top_n)
         
         if not knn_recommendations:
             logger.warning(f"No KNN-based recommendations found for user {user_id}. Falling back to association rules.")
             
-            # Step 2: If KNN fails, use Association Rules to generate recommendations
+            # If KNN fails, use Association Rules to generate recommendations
             association_recommendations = get_association_rule_recommendations(user_id, top_n)
             
             if not association_recommendations:
                 logger.warning(f"No recommendations found using association rules for user {user_id}. Falling back to popular products.")
                 
-                # Step 3: If association rules fail, fall back to popular products
+                # If association rules fail, fall back to popular products
                 popular_recommendations = get_popular_products(top_n)
                 plot_popular_products(top_n)  # Visualize popular products
                 recommended_products = Product.objects.filter(id__in=popular_recommendations)

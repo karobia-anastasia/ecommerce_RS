@@ -44,5 +44,5 @@ def user_login(request):
 # User Logout View
 def user_logout(request):
     logout(request)
-    return redirect('account:login')
+    return redirect('users:login')
 

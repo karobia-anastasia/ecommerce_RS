@@ -1,4 +1,4 @@
-<!-- checkout.html -->
+{% include 'navbar.html' %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,8 +12,6 @@
 <div class="container mt-5">
     <h2>Checkout</h2>
     <hr>
-
-    <!-- Check if cart has items -->
     {% if cart_items %}
         <form method="POST" action="{% url 'checkout' %}">
             {% csrf_token %}

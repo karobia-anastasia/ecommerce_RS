@@ -1,5 +1,4 @@
 {% include 'navbar.html' %}
-
     <head>
         <style>
             * {
@@ -33,7 +32,7 @@
                 margin-bottom: 30px;
                 padding: 20px;
                 display: flex;
-                flex-direction: row; /* Change this to row to align items horizontally */
+                flex-direction: row;
                 justify-content: space-between;
                 align-items: flex-start;
             }
@@ -176,7 +175,6 @@
                 color: inherit;
             }
 
-            /* Responsive Layout */
             @media (max-width: 768px) {
                 .product-detail-card {
                     flex-direction: column;
@@ -202,27 +200,23 @@
     </head>
 
     <div class="container">
-        <!-- Product Detail Section -->
         <div class="product-detail-card">
-            <!-- Product Image -->
             <div class="product-image">
                 <img src="{{ product.image.url }}" alt="{{ product.name }}">
             </div>
 
-            <!-- Product Info (name, description, price) -->
             <div class="product-info">
                 <h2>{{ product.name }}</h2>
                 <p>{{ product.description }}</p>
                 <div class="price">{{ product.price }} USD</div>
             </div>
 
-            <!-- Add to Cart Form -->
             <div class="product-form">
-                <form method="POST">
+                <form method="POST" action="{% url 'products:add_to_cart' product.id %}">
                     {% csrf_token %}
                     <label for="quantity">Quantity: </label>
                     <input type="number" id="quantity" name="quantity" value="1" min="1">
-                    <button type="submit" class="btn-add-to-cart">Add to Cart</button>
+                    <button type="submit" class="btn btn-primary add-to-cart-btn">Add to Cart</button>
                 </form>
             </div>
         </div>

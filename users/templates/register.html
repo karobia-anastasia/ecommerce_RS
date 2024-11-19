@@ -9,8 +9,8 @@
 
             body {
                 font-family: Arial, sans-serif;
-                background-color: white;
-                color: rgb(9, 3, 3);
+                background-color: rgb(121, 110, 69);
+                color: #b97f13;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -18,7 +18,7 @@
             }
 
             .register-container {
-                background-color: #6C4E8B;                ;
+                background-color: white;                ;
                 padding: 30px;
                 border-radius: 8px;
                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -38,7 +38,7 @@
 
             input[type="text"], input[type="password"], input[type="email"] {
                 width: 100%;
-                padding: 7px;
+                padding: 10px;
                 margin: 4px 0;
                 border: 1px solid #ccc;
                 border-radius: 4px;
@@ -47,7 +47,7 @@
             }
 
             input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
-                border-color: #6c4e8b;
+                border-color:  #b97f13;
             }
 
             .btn-register {
@@ -62,7 +62,7 @@
             }
 
             .btn-register:hover {
-                background-color: #80629f;
+                background-color: #b97f13;
                 color: rgb(25, 23, 23);
             }
 
@@ -79,7 +79,7 @@
                 text-align: center;
             }
                         a {
-                color: #6c4e8b;
+                color: #170b85;
                 text-decoration: none;
             }
 
@@ -92,13 +92,14 @@
                 border: none;
                 background: none;
             }
+            .footer{
+                margin-top: 10px;
+            }
         </style>
     </head>
 
     <div class="register-container">
         <h2>Register</h2>
-
-        <!-- Display success or error messages -->
         {% if messages %}
             <div class="success-message">
                 {% for message in messages %}
@@ -154,6 +155,9 @@
             {% endif %}
 
             <button type="submit" class="btn-register">Register</button>
+            <div class="text-center footer">
+                <p>Already have an account? <a href="{% url 'users:login' %}">Login here</a></p>
+            </div>
         </form>
     </div>
 {% endblock %}
